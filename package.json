@@ -1,0 +1,13 @@
+{
+  "name": "invoice-maker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Modern Invoice Maker Web Application with LocalStorage Persistence and PDF Export",
+  "scripts": {
+    "dev": "serve .",
+    "start": "serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
