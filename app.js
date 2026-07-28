@@ -583,7 +583,7 @@ function createNewInvoiceDraft() {
 function duplicateInvoice(sourceInvoice = currentInvoice) {
   if (!sourceInvoice) return;
   const nextNum = savedInvoices.length + 1;
-  const formattedNo = `INV-${String(nextNum).padStart(3, '0')}`;
+  const formattedNo = `INV-T${String(nextNum).padStart(3, '0')}`;
 
   const sourceName = sourceInvoice.invNo ? sourceInvoice.invNo : 'current invoice';
 
