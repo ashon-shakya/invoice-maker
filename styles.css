@@ -1052,6 +1052,10 @@ body {
 
 /* Print CSS */
 @media print {
+  @page {
+    margin: 0;
+    size: A4 portrait;
+  }
   body {
     background: white !important;
     color: black !important;
@@ -1075,7 +1079,7 @@ body {
   .invoice-paper {
     width: 100% !important;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 45px 50px !important;
     transform: none !important;
   }
 }

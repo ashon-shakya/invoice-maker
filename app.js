@@ -583,23 +583,30 @@ function downloadPDF() {
 
   showToast('Generating PDF...', 'info');
 
+  // Temporarily reset CSS zoom transform so html2canvas captures element at 1:1 ratio
+  const originalTransform = element.style.transform;
+  element.style.transform = 'none';
+
   const opt = {
-    margin:       [0.3, 0.3, 0.3, 0.3], // inches
+    margin:       0, // 0 margins so PDF fills exact A4 width with no right-side cropping
     filename:     filename,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+    html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
   if (window.html2pdf) {
     html2pdf().set(opt).from(element).save().then(() => {
+      element.style.transform = originalTransform;
       showToast('PDF downloaded successfully!');
     }).catch(err => {
       console.error('PDF error:', err);
+      element.style.transform = originalTransform;
       showToast('Failed to generate PDF. Trying fallback print...', 'error');
       window.print();
     });
   } else {
+    element.style.transform = originalTransform;
     window.print();
   }
 }
