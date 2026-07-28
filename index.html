@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Invoice Maker</title>
+  <!-- Google Fonts: Inter & Serif font for invoice typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Times+New+Roman&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2pdf.js for clean PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon"><i data-lucide="receipt"></i></div>
+        <h1>InvoiceMaker <span class="badge">Pro</span></h1>
+      </div>
+      <div class="header-actions">
+        <button id="btn-personal-modal" class="btn btn-secondary">
+          <i data-lucide="user-cog"></i> Personal Details
+        </button>
+        <button id="btn-history-modal" class="btn btn-secondary">
+          <i data-lucide="history"></i> Saved Invoices (<span id="history-count">0</span>)
+        </button>
+        <button id="btn-new-invoice" class="btn btn-secondary">
+          <i data-lucide="plus"></i> New Invoice
+        </button>
+        <button id="btn-save-invoice" class="btn btn-primary">
+          <i data-lucide="save"></i> Save Invoice
+        </button>
+        <button id="btn-download-pdf" class="btn btn-accent">
+          <i data-lucide="download"></i> Download PDF
+        </button>
+        <button id="btn-print" class="btn btn-outline">
+          <i data-lucide="printer"></i> Print
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Left Panel: Form Controls -->
+      <aside class="editor-panel">
+        <div class="panel-header">
+          <h2><i data-lucide="sliders"></i> Invoice Editor</h2>
+          <span class="subtext">Fill in the fields to instantly update the live preview</span>
+        </div>
+
+        <div class="editor-sections">
+          <!-- Metadata Section -->
+          <section class="accordion-item open">
+            <div class="accordion-header">
+              <i data-lucide="file-text"></i>
+              <h3>Invoice Info & Client</h3>
+            </div>
+            <div class="accordion-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="input-inv-no">Invoice No.</label>
+                  <input type="text" id="input-inv-no" value="INV-T001" placeholder="e.g. INV-T001">
+                </div>
+                <div class="form-group">
+                  <label for="input-date">Invoice Date</label>
+                  <input type="text" id="input-date" value="24th April 2026" placeholder="e.g. 24th April 2026">
+                </div>
+                <div class="form-group full-width">
+                  <label for="input-to">Client Name (TO)</label>
+                  <input type="text" id="input-to" value="Locii innovation Pty Ltd" placeholder="Client company or person name">
+                </div>
+                <div class="form-group full-width">
+                  <label for="input-instructions">Payment Instructions</label>
+                  <input type="text" id="input-instructions" value="Please pay within 7 days." placeholder="e.g. Please pay within 7 days.">
+                </div>
+                <div class="form-group">
+                  <label for="input-payment-terms">Payment Terms</label>
+                  <input type="text" id="input-payment-terms" value="7 days" placeholder="e.g. 7 days">
+                </div>
+                <div class="form-group">
+                  <label for="select-gst">GST Option</label>
+                  <select id="select-gst">
+                    <option value="NO GST" selected>(NO GST)</option>
+                    <option value="INCLUDES GST 10%">Includes GST (10%)</option>
+                    <option value="EXCLUDES GST 10%">+ 10% GST Added</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Line Items Section -->
+          <section class="accordion-item open">
+            <div class="accordion-header">
+              <i data-lucide="list"></i>
+              <h3>Line Items</h3>
+            </div>
+            <div class="accordion-body">
+              <div id="items-container" class="items-list">
+                <!-- Line items injected via JS -->
+              </div>
+              <button id="btn-add-item" class="btn btn-sm btn-secondary btn-full-width">
+                <i data-lucide="plus-circle"></i> Add Item Row
+              </button>
+            </div>
+          </section>
+
+          <!-- Personal & Bank Details Quick Summary -->
+          <section class="accordion-item">
+            <div class="accordion-header">
+              <i data-lucide="shield-check"></i>
+              <h3>Personal & Banking Info</h3>
+              <button id="btn-quick-edit-personal" class="btn btn-xs btn-link">Edit</button>
+            </div>
+            <div class="accordion-body">
+              <div class="quick-summary-box">
+                <p><strong>Sender:</strong> <span id="summary-name">Ashon Shakya</span></p>
+                <p><strong>ABN:</strong> <span id="summary-abn">11903533863</span></p>
+                <p><strong>Bank:</strong> <span id="summary-bank">NAB</span> (<span id="summary-bsb">082-133</span>)</p>
+                <p><strong>Account:</strong> <span id="summary-account">28-812-8715</span></p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Live Document Preview -->
+      <section class="preview-panel">
+        <div class="preview-toolbar">
+          <span class="preview-title"><i data-lucide="eye"></i> Live Document View</span>
+          <div class="preview-actions">
+            <button id="btn-zoom-out" class="btn-icon" title="Zoom Out"><i data-lucide="zoom-out"></i></button>
+            <span id="zoom-level">100%</span>
+            <button id="btn-zoom-in" class="btn-icon" title="Zoom In"><i data-lucide="zoom-in"></i></button>
+            <button id="btn-reset-zoom" class="btn-icon" title="Reset Zoom"><i data-lucide="rotate-ccw"></i></button>
+          </div>
+        </div>
+
+        <div class="preview-viewport">
+          <!-- The exact printable visual document matching image -->
+          <div id="invoice-document" class="invoice-paper">
+            
+            <!-- Top Framed Personal Details Box -->
+            <div class="personal-info-box">
+              <div class="info-line"><span class="info-label">Name :</span> <span id="view-name" class="info-val">Ashon Shakya</span></div>
+              <div class="info-line"><span class="info-label">Address :</span> <span id="view-address" class="info-val">10/16A Wigram Street, Harris Park, NSW 2150</span></div>
+              <div class="info-line"><span class="info-label">Email :</span> <span id="view-email" class="info-val">shakya.ashon@gmail.com</span></div>
+              <div class="info-line"><span class="info-label">ABN :</span> <span id="view-abn" class="info-val">11903533863</span></div>
+            </div>
+
+            <!-- Invoice Header Grey Banner -->
+            <div class="invoice-header-banner">
+              <div class="inv-title">
+                <span class="inv-label">Invoice No.</span>
+                <span id="view-inv-no" class="inv-no-val">INV-T001</span>
+              </div>
+              <div id="view-date" class="inv-date-val">24th April 2026</div>
+            </div>
+
+            <!-- Client & Instructions Header -->
+            <div class="client-instructions-section">
+              <div class="ci-col ci-left">
+                <div class="ci-header">TO</div>
+                <div id="view-to" class="ci-content">Locii innovation Pty Ltd</div>
+              </div>
+              <div class="ci-col ci-right">
+                <div class="ci-header">INSTRUCTIONS</div>
+                <div id="view-instructions" class="ci-content">Please pay within 7 days.</div>
+              </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="description-table-wrapper">
+              <table class="description-table">
+                <thead>
+                  <tr>
+                    <th class="th-desc">DESCRIPTION</th>
+                    <th class="th-amount">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody id="view-items-body">
+                  <!-- Rendered dynamically -->
+                  <tr>
+                    <td class="td-desc">Milestone 'Onboard P1'</td>
+                    <td class="td-amount">$1,250</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Calculation & Totals Section -->
+            <div class="totals-section">
+              <div class="totals-block">
+                <div class="totals-row subtotal-row">
+                  <span class="totals-label">SUBTOTAL</span>
+                  <span id="view-subtotal" class="totals-val">1,250</span>
+                </div>
+                <div class="totals-row gst-row">
+                  <span id="view-gst-label" class="gst-text">(NO GST)</span>
+                  <span id="view-gst-amount" class="gst-val"></span>
+                </div>
+                <div class="totals-row total-due-row">
+                  <span class="totals-label bold-label">TOTAL DUE</span>
+                  <span id="view-total-due" class="totals-val bold-val">$1,250</span>
+                </div>
+                <div class="totals-row terms-row">
+                  <span class="terms-label">Payment terms:</span>
+                  <span id="view-payment-terms" class="terms-val">7 days</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Framed Bank Details Box -->
+            <div class="bank-info-box">
+              <div class="info-line"><span class="info-label">Bank Name :</span> <span id="view-bank-name" class="info-val">NAB</span></div>
+              <div class="info-line"><span class="info-label">Bank account number :</span> <span id="view-bank-acc" class="info-val">28-812-8715</span></div>
+              <div class="info-line"><span class="info-label">Name of bank account holder :</span> <span id="view-bank-holder" class="info-val">Ashon Shakya</span></div>
+              <div class="info-line"><span class="info-label">BSB :</span> <span id="view-bsb" class="info-val">082-133</span></div>
+            </div>
+
+            <!-- Bottom decorative line -->
+            <div class="invoice-bottom-line"></div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Personal Details Settings -->
+    <div id="modal-personal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3><i data-lucide="user-check"></i> Edit Personal & Bank Details</h3>
+          <button class="modal-close" id="close-personal-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">These details are stored in your browser's local storage and used across all invoices.</p>
+          <form id="form-personal-details">
+            <h4 class="form-subheading">Personal Profile</h4>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="p-name">Full Name</label>
+                <input type="text" id="p-name" required>
+              </div>
+              <div class="form-group full-width">
+                <label for="p-address">Address</label>
+                <input type="text" id="p-address" required>
+              </div>
+              <div class="form-group">
+                <label for="p-email">Email</label>
+                <input type="email" id="p-email" required>
+              </div>
+              <div class="form-group">
+                <label for="p-abn">ABN</label>
+                <input type="text" id="p-abn" required>
+              </div>
+            </div>
+
+            <h4 class="form-subheading">Banking Details</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="p-bank-name">Bank Name</label>
+                <input type="text" id="p-bank-name" required>
+              </div>
+              <div class="form-group">
+                <label for="p-bank-acc">Bank Account Number</label>
+                <input type="text" id="p-bank-acc" required>
+              </div>
+              <div class="form-group">
+                <label for="p-bank-holder">Account Holder Name</label>
+                <input type="text" id="p-bank-holder" required>
+              </div>
+              <div class="form-group">
+                <label for="p-bsb">BSB</label>
+                <input type="text" id="p-bsb" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="btn-reset-personal-defaults" class="btn btn-outline-danger">Reset to Defaults</button>
+              <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Details</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Saved Invoices History -->
+    <div id="modal-history" class="modal-overlay">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3><i data-lucide="folder-open"></i> Saved Invoices History</h3>
+          <button class="modal-close" id="close-history-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="history-empty" class="empty-state">
+            <i data-lucide="file-x"></i>
+            <p>No saved invoices yet in local storage.</p>
+            <small>Create an invoice and click "Save Invoice" to store it here.</small>
+          </div>
+          <div id="history-list" class="history-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
