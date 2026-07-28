@@ -559,8 +559,8 @@ function saveCurrentInvoice() {
 
 function createNewInvoiceDraft() {
   const nextNum = savedInvoices.length + 1;
-  const formattedNo = `INV-${String(nextNum).padStart(3, '0')}`;
-  
+  const formattedNo = `INV-T${String(nextNum).padStart(3, '0')}`;
+
   currentInvoice = {
     id: null,
     invNo: formattedNo,
@@ -595,7 +595,7 @@ function duplicateInvoice(sourceInvoice = currentInvoice) {
     instructions: sourceInvoice.instructions || '',
     paymentTerms: sourceInvoice.paymentTerms || '7 days',
     gstOption: sourceInvoice.gstOption || 'NO GST',
-    items: sourceInvoice.items && sourceInvoice.items.length > 0 
+    items: sourceInvoice.items && sourceInvoice.items.length > 0
       ? JSON.parse(JSON.stringify(sourceInvoice.items))
       : [{ desc: '', qty: 1, rate: 0, amount: 0 }]
   };
@@ -621,11 +621,11 @@ function downloadPDF() {
   element.style.transform = 'none';
 
   const opt = {
-    margin:       0, // 0 margins so PDF fills exact A4 width with no right-side cropping
-    filename:     filename,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    margin: 0, // 0 margins so PDF fills exact A4 width with no right-side cropping
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
   if (window.html2pdf) {
@@ -684,7 +684,7 @@ function escapeHtml(str) {
 function formatDateToReadable(date) {
   const day = date.getDate();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
+
   let suffix = 'th';
   if (day === 1 || day === 21 || day === 31) suffix = 'st';
   else if (day === 2 || day === 22) suffix = 'nd';
@@ -697,7 +697,7 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  
+
   let iconName = 'check-circle';
   if (type === 'error') iconName = 'alert-circle';
   if (type === 'info') iconName = 'info';
