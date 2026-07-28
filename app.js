@@ -17,7 +17,7 @@ const DEFAULT_PERSONAL_DETAILS = {
 // Blank Initial Invoice Draft
 const DEFAULT_INVOICE_DRAFT = {
   id: null,
-  invNo: 'INV-001',
+  invNo: 'INV-T001',
   date: formatDateToReadable(new Date()),
   to: '',
   instructions: '',
