@@ -2,29 +2,29 @@
  * Modern Invoice Maker - Core JS Application
  */
 
-// Default Personal Details extracted from reference image
+// Blank Personal Details Defaults
 const DEFAULT_PERSONAL_DETAILS = {
-  name: 'Ashon Shakya',
-  address: '10/16A Wigram Street, Harris Park, NSW 2150',
-  email: 'shakya.ashon@gmail.com',
-  abn: '11903533863',
-  bankName: 'NAB',
-  bankAcc: '28-812-8715',
-  bankHolder: 'Ashon Shakya',
-  bsb: '082-133'
+  name: '',
+  address: '',
+  email: '',
+  abn: '',
+  bankName: '',
+  bankAcc: '',
+  bankHolder: '',
+  bsb: ''
 };
 
-// Default Initial Invoice Draft
+// Blank Initial Invoice Draft
 const DEFAULT_INVOICE_DRAFT = {
   id: null,
-  invNo: 'INV-T001',
-  date: '24th April 2026',
-  to: 'Locii innovation Pty Ltd',
-  instructions: 'Please pay within 7 days.',
+  invNo: 'INV-001',
+  date: formatDateToReadable(new Date()),
+  to: '',
+  instructions: '',
   paymentTerms: '7 days',
   gstOption: 'NO GST',
   items: [
-    { desc: "Milestone 'Onboard P1'", amount: 1250 }
+    { desc: '', qty: 1, rate: 0, amount: 0 }
   ]
 };
 
@@ -67,7 +67,6 @@ function loadPersonalDetails() {
     }
   } else {
     currentPersonalDetails = { ...DEFAULT_PERSONAL_DETAILS };
-    savePersonalDetailsToStorage();
   }
   updatePersonalDetailsViews();
 }
@@ -85,14 +84,7 @@ function loadInvoiceHistory() {
       savedInvoices = [];
     }
   } else {
-    // Pre-populate history with initial reference invoice if empty
-    const initialInv = {
-      ...DEFAULT_INVOICE_DRAFT,
-      id: 'inv_' + Date.now(),
-      savedAt: new Date().toISOString()
-    };
-    savedInvoices = [initialInv];
-    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(savedInvoices));
+    savedInvoices = [];
   }
   updateHistoryCount();
 }
@@ -214,32 +206,145 @@ function bindEvents() {
 
 function renderItems() {
   const container = document.getElementById('items-container');
+  const badge = document.getElementById('items-badge');
+  if (badge) {
+    badge.textContent = currentInvoice.items.length;
+  }
+
   container.innerHTML = '';
 
   currentInvoice.items.forEach((item, index) => {
+    // Ensure item properties exist
+    const qty = item.qty !== undefined ? item.qty : 1;
+    const amount = item.amount !== undefined ? item.amount : 0;
+    const rate = item.rate !== undefined ? item.rate : (qty ? amount / qty : amount);
+
+    item.qty = qty;
+    item.rate = rate;
+    item.amount = amount;
+
     const row = document.createElement('div');
-    row.className = 'item-row-edit';
+    row.className = 'item-card-vertical';
     row.innerHTML = `
-      <input type="text" class="input-desc" placeholder="Item description" value="${escapeHtml(item.desc)}">
-      <input type="number" step="0.01" class="input-amount" placeholder="Amount ($)" value="${item.amount || ''}">
-      <button class="btn-danger-icon btn-remove-item" title="Remove row"><i data-lucide="trash-2"></i></button>
+      <div class="item-card-header">
+        <span class="item-card-title"><i data-lucide="layers"></i> Item #${index + 1}</span>
+        <div class="row-actions">
+          <button class="btn-icon-sm btn-move-up" title="Move Up" ${index === 0 ? 'disabled' : ''}>
+            <i data-lucide="chevron-up"></i>
+          </button>
+          <button class="btn-icon-sm btn-move-down" title="Move Down" ${index === currentInvoice.items.length - 1 ? 'disabled' : ''}>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <button class="btn-icon-sm btn-duplicate-item" title="Duplicate Row">
+            <i data-lucide="copy"></i>
+          </button>
+          <button class="btn-icon-sm btn-danger btn-remove-item" title="Delete Row">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="form-group full-width">
+          <label>Description</label>
+          <input type="text" class="input-desc" placeholder="e.g. Milestone 'Onboard P1'" value="${escapeHtml(item.desc)}">
+        </div>
+        <div class="item-card-metrics">
+          <div class="form-group">
+            <label>Qty</label>
+            <input type="number" min="1" step="1" class="input-qty" placeholder="1" value="${qty}">
+          </div>
+          <div class="form-group">
+            <label>Rate ($)</label>
+            <input type="number" step="0.01" class="input-rate" placeholder="0.00" value="${rate || ''}">
+          </div>
+          <div class="form-group">
+            <label>Total ($)</label>
+            <input type="number" step="0.01" class="input-amount" placeholder="0.00" value="${amount || ''}">
+          </div>
+        </div>
+      </div>
     `;
 
-    // Event handlers for desc & amount
     const descInput = row.querySelector('.input-desc');
+    const qtyInput = row.querySelector('.input-qty');
+    const rateInput = row.querySelector('.input-rate');
     const amountInput = row.querySelector('.input-amount');
+    const moveUpBtn = row.querySelector('.btn-move-up');
+    const moveDownBtn = row.querySelector('.btn-move-down');
+    const dupBtn = row.querySelector('.btn-duplicate-item');
     const removeBtn = row.querySelector('.btn-remove-item');
 
+    // Sync Description
     descInput.addEventListener('input', (e) => {
       currentInvoice.items[index].desc = e.target.value;
       updatePreview();
     });
 
-    amountInput.addEventListener('input', (e) => {
-      currentInvoice.items[index].amount = parseFloat(e.target.value) || 0;
+    // Qty change -> Update Amount (Amount = Qty * Rate)
+    qtyInput.addEventListener('input', (e) => {
+      const q = Math.max(1, parseFloat(e.target.value) || 1);
+      currentInvoice.items[index].qty = q;
+      const r = currentInvoice.items[index].rate || 0;
+      const newAmount = q * r;
+      currentInvoice.items[index].amount = newAmount;
+      amountInput.value = newAmount ? newAmount : '';
       updatePreview();
     });
 
+    // Rate change -> Update Amount (Amount = Qty * Rate)
+    rateInput.addEventListener('input', (e) => {
+      const r = parseFloat(e.target.value) || 0;
+      currentInvoice.items[index].rate = r;
+      const q = currentInvoice.items[index].qty || 1;
+      const newAmount = q * r;
+      currentInvoice.items[index].amount = newAmount;
+      amountInput.value = newAmount ? newAmount : '';
+      updatePreview();
+    });
+
+    // Direct Amount change -> Update Rate (Rate = Amount / Qty)
+    amountInput.addEventListener('input', (e) => {
+      const a = parseFloat(e.target.value) || 0;
+      currentInvoice.items[index].amount = a;
+      const q = currentInvoice.items[index].qty || 1;
+      const newRate = q ? a / q : a;
+      currentInvoice.items[index].rate = newRate;
+      rateInput.value = newRate ? newRate : '';
+      updatePreview();
+    });
+
+    // Move Up
+    moveUpBtn.addEventListener('click', () => {
+      if (index > 0) {
+        const temp = currentInvoice.items[index];
+        currentInvoice.items[index] = currentInvoice.items[index - 1];
+        currentInvoice.items[index - 1] = temp;
+        renderItems();
+        updatePreview();
+      }
+    });
+
+    // Move Down
+    moveDownBtn.addEventListener('click', () => {
+      if (index < currentInvoice.items.length - 1) {
+        const temp = currentInvoice.items[index];
+        currentInvoice.items[index] = currentInvoice.items[index + 1];
+        currentInvoice.items[index + 1] = temp;
+        renderItems();
+        updatePreview();
+      }
+    });
+
+    // Duplicate
+    dupBtn.addEventListener('click', () => {
+      const copy = JSON.parse(JSON.stringify(currentInvoice.items[index]));
+      currentInvoice.items.splice(index + 1, 0, copy);
+      renderItems();
+      updatePreview();
+      showToast('Row duplicated');
+    });
+
+    // Remove
     removeBtn.addEventListener('click', () => {
       if (currentInvoice.items.length <= 1) {
         showToast('Invoice must have at least one line item.', 'error');
@@ -447,18 +552,18 @@ function saveCurrentInvoice() {
 
 function createNewInvoiceDraft() {
   const nextNum = savedInvoices.length + 1;
-  const formattedNo = `INV-T${String(nextNum).padStart(3, '0')}`;
+  const formattedNo = `INV-${String(nextNum).padStart(3, '0')}`;
   
   currentInvoice = {
     id: null,
     invNo: formattedNo,
     date: formatDateToReadable(new Date()),
     to: '',
-    instructions: 'Please pay within 7 days.',
+    instructions: '',
     paymentTerms: '7 days',
     gstOption: 'NO GST',
     items: [
-      { desc: '', amount: 0 }
+      { desc: '', qty: 1, rate: 0, amount: 0 }
     ]
   };
 

@@ -64,19 +64,19 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label for="input-inv-no">Invoice No.</label>
-                  <input type="text" id="input-inv-no" value="INV-T001" placeholder="e.g. INV-T001">
+                  <input type="text" id="input-inv-no" value="" placeholder="e.g. INV-001">
                 </div>
                 <div class="form-group">
                   <label for="input-date">Invoice Date</label>
-                  <input type="text" id="input-date" value="24th April 2026" placeholder="e.g. 24th April 2026">
+                  <input type="text" id="input-date" value="" placeholder="e.g. 24th April 2026">
                 </div>
                 <div class="form-group full-width">
                   <label for="input-to">Client Name (TO)</label>
-                  <input type="text" id="input-to" value="Locii innovation Pty Ltd" placeholder="Client company or person name">
+                  <input type="text" id="input-to" value="" placeholder="Client company or person name">
                 </div>
                 <div class="form-group full-width">
                   <label for="input-instructions">Payment Instructions</label>
-                  <input type="text" id="input-instructions" value="Please pay within 7 days." placeholder="e.g. Please pay within 7 days.">
+                  <input type="text" id="input-instructions" value="" placeholder="e.g. Please pay within 7 days.">
                 </div>
                 <div class="form-group">
                   <label for="input-payment-terms">Payment Terms</label>
@@ -99,14 +99,17 @@
             <div class="accordion-header">
               <i data-lucide="list"></i>
               <h3>Line Items</h3>
+              <span id="items-badge" class="badge-count">1</span>
             </div>
             <div class="accordion-body">
               <div id="items-container" class="items-list">
-                <!-- Line items injected via JS -->
+                <!-- Vertical line item cards injected via JS -->
               </div>
-              <button id="btn-add-item" class="btn btn-sm btn-secondary btn-full-width">
-                <i data-lucide="plus-circle"></i> Add Item Row
-              </button>
+              <div class="items-actions-bar">
+                <button id="btn-add-item" class="btn btn-primary btn-add-item-dashed">
+                  <i data-lucide="plus-circle"></i> Add Line Item
+                </button>
+              </div>
             </div>
           </section>
 
@@ -147,30 +150,30 @@
             
             <!-- Top Framed Personal Details Box -->
             <div class="personal-info-box">
-              <div class="info-line"><span class="info-label">Name :</span> <span id="view-name" class="info-val">Ashon Shakya</span></div>
-              <div class="info-line"><span class="info-label">Address :</span> <span id="view-address" class="info-val">10/16A Wigram Street, Harris Park, NSW 2150</span></div>
-              <div class="info-line"><span class="info-label">Email :</span> <span id="view-email" class="info-val">shakya.ashon@gmail.com</span></div>
-              <div class="info-line"><span class="info-label">ABN :</span> <span id="view-abn" class="info-val">11903533863</span></div>
+              <div class="info-line"><span class="info-label">Name :</span> <span id="view-name" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">Address :</span> <span id="view-address" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">Email :</span> <span id="view-email" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">ABN :</span> <span id="view-abn" class="info-val"></span></div>
             </div>
 
             <!-- Invoice Header Grey Banner -->
             <div class="invoice-header-banner">
               <div class="inv-title">
                 <span class="inv-label">Invoice No.</span>
-                <span id="view-inv-no" class="inv-no-val">INV-T001</span>
+                <span id="view-inv-no" class="inv-no-val"></span>
               </div>
-              <div id="view-date" class="inv-date-val">24th April 2026</div>
+              <div id="view-date" class="inv-date-val"></div>
             </div>
 
             <!-- Client & Instructions Header -->
             <div class="client-instructions-section">
               <div class="ci-col ci-left">
                 <div class="ci-header">TO</div>
-                <div id="view-to" class="ci-content">Locii innovation Pty Ltd</div>
+                <div id="view-to" class="ci-content"></div>
               </div>
               <div class="ci-col ci-right">
                 <div class="ci-header">INSTRUCTIONS</div>
-                <div id="view-instructions" class="ci-content">Please pay within 7 days.</div>
+                <div id="view-instructions" class="ci-content"></div>
               </div>
             </div>
 
@@ -185,10 +188,6 @@
                 </thead>
                 <tbody id="view-items-body">
                   <!-- Rendered dynamically -->
-                  <tr>
-                    <td class="td-desc">Milestone 'Onboard P1'</td>
-                    <td class="td-amount">$1,250</td>
-                  </tr>
                 </tbody>
               </table>
             </div>
@@ -198,7 +197,7 @@
               <div class="totals-block">
                 <div class="totals-row subtotal-row">
                   <span class="totals-label">SUBTOTAL</span>
-                  <span id="view-subtotal" class="totals-val">1,250</span>
+                  <span id="view-subtotal" class="totals-val">0</span>
                 </div>
                 <div class="totals-row gst-row">
                   <span id="view-gst-label" class="gst-text">(NO GST)</span>
@@ -206,7 +205,7 @@
                 </div>
                 <div class="totals-row total-due-row">
                   <span class="totals-label bold-label">TOTAL DUE</span>
-                  <span id="view-total-due" class="totals-val bold-val">$1,250</span>
+                  <span id="view-total-due" class="totals-val bold-val">$0</span>
                 </div>
                 <div class="totals-row terms-row">
                   <span class="terms-label">Payment terms:</span>
@@ -217,10 +216,10 @@
 
             <!-- Bottom Framed Bank Details Box -->
             <div class="bank-info-box">
-              <div class="info-line"><span class="info-label">Bank Name :</span> <span id="view-bank-name" class="info-val">NAB</span></div>
-              <div class="info-line"><span class="info-label">Bank account number :</span> <span id="view-bank-acc" class="info-val">28-812-8715</span></div>
-              <div class="info-line"><span class="info-label">Name of bank account holder :</span> <span id="view-bank-holder" class="info-val">Ashon Shakya</span></div>
-              <div class="info-line"><span class="info-label">BSB :</span> <span id="view-bsb" class="info-val">082-133</span></div>
+              <div class="info-line"><span class="info-label">Bank Name :</span> <span id="view-bank-name" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">Bank account number :</span> <span id="view-bank-acc" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">Name of bank account holder :</span> <span id="view-bank-holder" class="info-val"></span></div>
+              <div class="info-line"><span class="info-label">BSB :</span> <span id="view-bsb" class="info-val"></span></div>
             </div>
 
             <!-- Bottom decorative line -->
