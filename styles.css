@@ -478,7 +478,8 @@ body {
    ========================================================================== */
 
 .invoice-paper {
-  width: 794px; /* Standard A4 width pixel ratio at 96 DPI */
+  width: 794px;
+  /* Standard A4 width pixel ratio at 96 DPI */
   min-height: 1050px;
   background-color: var(--paper-bg);
   color: var(--paper-text);
@@ -999,6 +1000,23 @@ body {
   display: flex;
   gap: 0.4rem;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.history-card-actions .btn {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.72rem;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.history-card-actions .btn svg,
+.history-card-actions .btn i {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 .empty-state {
@@ -1044,6 +1062,7 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -1056,10 +1075,12 @@ body {
     margin: 0;
     size: A4 portrait;
   }
+
   body {
     background: white !important;
     color: black !important;
   }
+
   .app-header,
   .editor-panel,
   .preview-toolbar,
@@ -1067,6 +1088,7 @@ body {
   .toast-container {
     display: none !important;
   }
+
   .app-workspace,
   .preview-panel,
   .preview-viewport {
@@ -1076,6 +1098,7 @@ body {
     overflow: visible !important;
     display: block !important;
   }
+
   .invoice-paper {
     width: 100% !important;
     box-shadow: none !important;

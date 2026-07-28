@@ -182,6 +182,7 @@ function bindEvents() {
   // Invoice Action Buttons
   document.getElementById('btn-save-invoice').addEventListener('click', () => saveCurrentInvoice());
   document.getElementById('btn-new-invoice').addEventListener('click', () => createNewInvoiceDraft());
+  document.getElementById('btn-duplicate-invoice').addEventListener('click', () => duplicateInvoice());
   document.getElementById('btn-download-pdf').addEventListener('click', () => downloadPDF());
   document.getElementById('btn-print').addEventListener('click', () => window.print());
 
@@ -503,6 +504,7 @@ function renderHistoryList() {
       <div class="history-card-total">$${formatNumber(total)}</div>
       <div class="history-card-actions">
         <button class="btn btn-xs btn-primary btn-load-inv"><i data-lucide="folder-input"></i> Load</button>
+        <button class="btn btn-xs btn-secondary btn-duplicate-inv" title="Copy data & create new invoice"><i data-lucide="copy"></i> Copy</button>
         <button class="btn btn-xs btn-outline-danger btn-delete-inv"><i data-lucide="trash"></i> Delete</button>
       </div>
     `;
@@ -514,6 +516,11 @@ function renderHistoryList() {
       updatePreview();
       closeHistoryModal();
       showToast(`Loaded invoice ${inv.invNo}`);
+    });
+
+    card.querySelector('.btn-duplicate-inv').addEventListener('click', () => {
+      duplicateInvoice(inv);
+      closeHistoryModal();
     });
 
     card.querySelector('.btn-delete-inv').addEventListener('click', () => {
@@ -571,6 +578,32 @@ function createNewInvoiceDraft() {
   renderItems();
   updatePreview();
   showToast('New blank invoice draft created.');
+}
+
+function duplicateInvoice(sourceInvoice = currentInvoice) {
+  if (!sourceInvoice) return;
+  const nextNum = savedInvoices.length + 1;
+  const formattedNo = `INV-${String(nextNum).padStart(3, '0')}`;
+
+  const sourceName = sourceInvoice.invNo ? sourceInvoice.invNo : 'current invoice';
+
+  currentInvoice = {
+    id: null,
+    invNo: formattedNo,
+    date: formatDateToReadable(new Date()),
+    to: sourceInvoice.to || '',
+    instructions: sourceInvoice.instructions || '',
+    paymentTerms: sourceInvoice.paymentTerms || '7 days',
+    gstOption: sourceInvoice.gstOption || 'NO GST',
+    items: sourceInvoice.items && sourceInvoice.items.length > 0 
+      ? JSON.parse(JSON.stringify(sourceInvoice.items))
+      : [{ desc: '', qty: 1, rate: 0, amount: 0 }]
+  };
+
+  renderFormFromState();
+  renderItems();
+  updatePreview();
+  showToast(`Created new invoice (${currentInvoice.invNo}) copied from ${sourceName}.`);
 }
 
 /* ==========================================================================
